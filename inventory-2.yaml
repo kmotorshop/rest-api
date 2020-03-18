@@ -1,0 +1,204 @@
+openapi: 3.0.0
+info:
+  title: Inventory
+  version: '1.0'
+  contact:
+    email: drobny@kmotorshop.com
+    url: www.kmotorshop.com
+    name: Zdenek Drobny
+  description: InventoryAPI
+paths:
+  /rest-api/inventory/v1/item:
+    get:
+      tags:
+        - Inventory
+      summary: Get colection of Items by Codes
+      operationId: getItems
+      parameters:
+        - name: items
+          in: query
+          description: "Set of codes delimited by '|'. Max 100 codes, or max 10, if you want check external supplier stock."
+          required: true
+          schema:
+            type: string
+        - name: detail
+          in: query
+          description: 'Scope of information. Bitwise OR: 1 - pcs on internal stock, 2 - price, 4 - pcs on supplier stock (if available)'
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemsCollection'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not Authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      description: "Get informations of inventory items's collection by codes."
+      security:
+        - basicAuth: []
+  '/rest-api/inventory/v1/item/{itemCode}':
+    get:
+      tags:
+        - Inventory
+      summary: Get single Item by Code
+      operationId: getItem
+      parameters:
+        - name: itemCode
+          in: path
+          description: Item Code.
+          required: true
+          schema:
+            type: string
+        - name: detail
+          in: query
+          description: 'Scope of information. Bitwise OR: 1 - pcs on internal stock, 2 - price, 4 - pcs on supplier stock (if available)'
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not Authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      description: 'Get information of single inventory item by code. '
+      security:
+        - basicAuth: []
+components:
+  schemas:
+    Item:
+      title: Item
+      type: object
+      properties:
+        itemNo:
+          type: string
+        itemStatus:
+          type: integer
+        itemStatusText:
+          type: string
+        availableQuantity:
+          $ref: '#/components/schemas/AvailableQuantity'
+        price:
+          $ref: '#/components/schemas/Price'
+      required:
+        - itemNo
+        - itemStatus
+    ItemsCollection:
+      title: ItemsCollection
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+      required:
+        - items
+    Price:
+      title: Price
+      type: object
+      properties:
+        currency:
+          type: string
+        vatRate:
+          type: integer
+        value:
+          type: number
+      required:
+        - currency
+        - vatRate
+        - value
+    AvailableQuantity:
+      title: AvailableQuantity
+      type: object
+      properties:
+        internalStock:
+          type:
+            - string
+            - integer
+        supplierStock:
+          type:
+            - string
+            - integer
+    Error:
+      title: Error
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+servers:
+  - url: 'https://www.kmotorshop.com'
+    description: ''
+tags:
+  - name: Inventory
